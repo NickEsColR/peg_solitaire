@@ -1,4 +1,6 @@
 from enum import Enum
+from itertools import product
+from typing import Iterable
 
 
 class MOVE(Enum):
@@ -71,6 +73,57 @@ class Solitaire:
             # print()
             print(f"{alphabet[row]}|{'|'.join(cells)}|")
 
+    def get_valid_moves(self) -> list[tuple[int, int, MOVE]]:
+        def is_valid_move(row: int, col: int, direction: MOVE) -> bool:
+            """Check if a move is valid.
+
+            Args:
+                row (int): The row index of the peg.
+                col (int): The column index of the peg.
+                direction (MOVE): The direction of the move.
+
+            Returns:
+                bool: True if the move is valid, False otherwise.
+            """
+
+            if direction not in DIRECTIONS:
+                return False
+
+            row_offset, col_offset, _, _ = DIRECTIONS[direction]
+            pattern = ""
+
+            for r in range(
+                row,
+                row + row_offset + (1 if row_offset > 0 else -1),
+                1 if row_offset > 0 else -1,
+            ):
+                for c in range(
+                    col,
+                    col + col_offset + (1 if col_offset > 0 else -1),
+                    1 if col_offset > 0 else -1,
+                ):
+                    try:
+                        pattern += self.board[r][c]
+                    except IndexError:
+                        return False
+
+            return pattern == "110"
+
+        all_options: Iterable[tuple[int, int, MOVE]] = product(
+            range(self._size), range(self._size), DIRECTIONS.keys()
+        )
+
+        return list(
+            filter(
+                lambda option: is_valid_move(option[0], option[1], option[2]),
+                all_options,
+            )
+        )
+
 
 solitaire: Solitaire = Solitaire()
 solitaire.show_board()
+moves: list[tuple[int, int, MOVE]] = solitaire.get_valid_moves()
+print("Valid moves:")
+for move in moves:
+    print(f"Peg at {move[0] + 1}, {move[1] + 1} can move {move[2].name}")
