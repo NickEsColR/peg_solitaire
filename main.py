@@ -16,6 +16,7 @@ DIRECTIONS: dict[MOVE, tuple[int, int, int, int]] = {
     MOVE.UP: (-2, 0, -1, 0),
     MOVE.DOWN: (2, 0, 1, 0),
 }
+ALPHABET: str = "ABCDEFG"
 
 
 class Solitaire:
@@ -61,7 +62,7 @@ class Solitaire:
         return self.board
 
     def show_board(self) -> None:
-        alphabet: str = "ABCDEFGH"
+
         print("  ", end="")
         for i in range(self._size):
             print(i + 1, end=" ")
@@ -71,7 +72,7 @@ class Solitaire:
             # for cell in cells:
             #     print(cell, end="|")
             # print()
-            print(f"{alphabet[row]}|{'|'.join(cells)}|")
+            print(f"{ALPHABET[row]}|{'|'.join(cells)}|")
 
     def get_valid_moves(self) -> list[tuple[int, int, MOVE]]:
         def is_valid_move(row: int, col: int, direction: MOVE) -> bool:
@@ -120,10 +121,49 @@ class Solitaire:
             )
         )
 
+    def show_moves(self, moves: list[tuple[int, int, MOVE]]) -> None:
+        """Display the valid moves on the board.
+
+        Args:
+            moves (list[tuple[int, int, MOVE]]): The list of valid moves.
+        """
+        mapped_moves: list[tuple[str, int, str]] = list(
+            map(lambda move: (ALPHABET[move[0]], move[1] + 1, move[2].value), moves)
+        )
+
+        for i, move in enumerate(mapped_moves):
+            print(f"{i + 1} {move}")
+
+    def apply_move(self, move: tuple[int, int, MOVE]) -> None:
+        """Apply a move to the board.
+
+        Args:
+            move (tuple[int, int, MOVE]): The move to apply.
+        """
+        if move not in self.get_valid_moves():
+            raise ValueError("Invalid move")
+
+        row: int
+        col: int
+        direction: MOVE
+        row, col, direction = move
+
+        row_offset: int
+        col_offset: int
+        row_jump_offset: int
+        col_jump_offset: int
+        row_offset, col_offset, row_jump_offset, col_jump_offset = DIRECTIONS[direction]
+
+        # Remove the peg at the starting position
+        self.board[row][col] = "0"
+        # Remove the peg at the position jumped over
+        self.board[row + row_jump_offset][col + col_jump_offset] = "0"
+        # Place the peg at the new position
+        self.board[row + row_offset][col + col_offset] = "1"
+
 
 solitaire: Solitaire = Solitaire()
 solitaire.show_board()
 moves: list[tuple[int, int, MOVE]] = solitaire.get_valid_moves()
 print("Valid moves:")
-for move in moves:
-    print(f"Peg at {move[0] + 1}, {move[1] + 1} can move {move[2].name}")
+solitaire.show_moves(moves)
