@@ -129,25 +129,22 @@ class Solitaire:
             if direction not in DIRECTIONS:
                 return False
 
-            row_offset, col_offset, _, _ = DIRECTIONS[direction]
-            pattern = ""
+            row_offset, col_offset, remove_row_offset, remove_col_offset = DIRECTIONS[
+                direction
+            ]
 
-            for r in range(
-                row,
-                row + row_offset + (1 if row_offset > 0 else -1),
-                1 if row_offset > 0 else -1,
-            ):
-                for c in range(
-                    col,
-                    col + col_offset + (1 if col_offset > 0 else -1),
-                    1 if col_offset > 0 else -1,
-                ):
-                    try:
-                        pattern += self.board[r][c]
-                    except IndexError:
-                        return False
+            row_moved: int = row + row_offset
+            col_moved: int = col + col_offset
+            removed_row: int = row + remove_row_offset
+            removed_col: int = col + remove_col_offset
 
-            return pattern == "110"
+            return (
+                0 <= row_moved < self._size
+                and 0 <= col_moved < self._size
+                and self.board[row][col] == "1"
+                and self.board[row_moved][col_moved] == "0"
+                and self.board[removed_row][removed_col] == "1"
+            )
 
         all_options: Iterable[tuple[int, int, MOVE]] = product(
             range(self._size), range(self._size), DIRECTIONS.keys()
