@@ -1,7 +1,26 @@
 from enum import Enum
 from itertools import product
-from typing import Iterable, Callable
+from typing import Any, Iterable, Callable
 import os
+
+
+def game_log(func: Callable[..., str]) -> Callable[..., str]:
+    """Decorator for registering game logs.
+
+    Args:
+        func (Callable[..., str]): The function to be decorated.
+
+    Returns:
+        Callable[..., str]: The decorated function.
+    """
+
+    def wrapper(*args: Any, **kwargs: Any) -> str:
+        result: str = func(*args, **kwargs)
+        with open("game_log.txt", "a") as log_file:
+            log_file.write(f"{result}\n")
+        return result
+
+    return wrapper
 
 
 class MOVE(Enum):
@@ -164,17 +183,24 @@ class Solitaire:
         self.board[row + row_offset][col + col_offset] = "1"
 
     def get_selection(
-        self, moves: list[tuple[int, int, MOVE]]
+        self, moves: list[tuple[int, int, MOVE]], use_random_mode: bool
     ) -> tuple[int, int, MOVE]:
         """Get a move selection from the user.
 
         Args:
             moves (list[tuple[int, int, MOVE]]): The list of valid moves.
+            use_random_mode (bool): Whether to use random mode for selection.
 
         Returns:
             tuple[int, int, MOVE]: The selected move.
         """
         number_of_moves: int = len(moves)
+        if use_random_mode:
+            import random
+
+            selected_move: tuple[int, int, MOVE] = random.choice(moves)
+            return selected_move
+
         while True:
             selection: str = input(
                 f"Select a move from 1 to {number_of_moves}: "
@@ -217,16 +243,33 @@ class Solitaire:
 
         return increase
 
-    def end_game(self) -> None:
+    @game_log
+    def end_game(self) -> str:
         """End the game and display the result."""
         moves_made: int = self.counter() - 1
         remaining_pegs: int = self.count_pegs()
-        print(
-            f"{'VICTORY' if self.validate_win() else 'DEFEAT'} | Moves made: {moves_made} | Remaining pegs: {remaining_pegs}"
+        return f"{'VICTORY' if self.validate_win() else 'DEFEAT'} | Moves made: {moves_made} | Remaining pegs: {remaining_pegs}"
+
+
+def ask_random_mode() -> bool:
+    """Ask the user if they want to play in random mode.
+
+    Returns:
+        bool: True if the user wants to play in random mode, False otherwise.
+    """
+    while True:
+        choice: str = (
+            input("Do you want to play in random mode? (y/n): ").strip().lower()
         )
+        if choice in ("y", "n"):
+            return choice == "y"
+        print("Invalid choice. Please enter 'y' or 'n'.")
 
 
 def main() -> None:
+    os.system("cls" if os.name == "nt" else "clear")
+
+    use_random_mode: bool = ask_random_mode()
     os.system("cls" if os.name == "nt" else "clear")
 
     game: Solitaire = Solitaire()
@@ -241,7 +284,9 @@ def main() -> None:
             continue
 
         game.show_moves(moves)
-        selected_move: tuple[int, int, MOVE] = game.get_selection(moves)
+        selected_move: tuple[int, int, MOVE] = game.get_selection(
+            moves, use_random_mode
+        )
 
         try:
             game.apply_move(selected_move)
@@ -251,7 +296,7 @@ def main() -> None:
             os.system("cls" if os.name == "nt" else "clear")
             print(f"Error applying move: {e}")
 
-    game.end_game()
+    print(game.end_game())
 
 
 main()
