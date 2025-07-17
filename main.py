@@ -1,6 +1,7 @@
 from enum import Enum
 from itertools import product
 from typing import Iterable
+import os
 
 
 class MOVE(Enum):
@@ -161,9 +162,50 @@ class Solitaire:
         # Place the peg at the new position
         self.board[row + row_offset][col + col_offset] = "1"
 
+    def get_selection(
+        self, moves: list[tuple[int, int, MOVE]]
+    ) -> tuple[int, int, MOVE]:
+        """Get a move selection from the user.
 
-solitaire: Solitaire = Solitaire()
-solitaire.show_board()
-moves: list[tuple[int, int, MOVE]] = solitaire.get_valid_moves()
-print("Valid moves:")
-solitaire.show_moves(moves)
+        Args:
+            moves (list[tuple[int, int, MOVE]]): The list of valid moves.
+
+        Returns:
+            tuple[int, int, MOVE]: The selected move.
+        """
+        number_of_moves: int = len(moves)
+        while True:
+            selection: str = input(
+                f"Select a move from 1 to {number_of_moves}: "
+            ).strip()
+            if selection.isdigit() and 1 <= int(selection) <= number_of_moves:
+                return moves[int(selection) - 1]
+            print("Invalid selection. Please try again.")
+
+
+def main() -> None:
+    os.system("cls" if os.name == "nt" else "clear")
+
+    game: Solitaire = Solitaire()
+
+    is_playing: bool = True
+    while is_playing:
+        game.show_board()
+        moves: list[tuple[int, int, MOVE]] = game.get_valid_moves()
+        if not moves:
+            print("No valid moves available. Game over!")
+            is_playing = False
+            continue
+
+        game.show_moves(moves)
+        selected_move: tuple[int, int, MOVE] = game.get_selection(moves)
+
+        try:
+            game.apply_move(selected_move)
+            os.system("cls" if os.name == "nt" else "clear")
+        except ValueError as e:
+            os.system("cls" if os.name == "nt" else "clear")
+            print(f"Error applying move: {e}")
+
+
+main()
