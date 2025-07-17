@@ -3,6 +3,8 @@ from itertools import product
 from typing import Any, Iterable, Callable
 import os
 
+from color_print import ColorPrint, Color
+
 
 def game_log(func: Callable[..., str]) -> Callable[..., str]:
     """Decorator for registering game logs.
@@ -86,14 +88,18 @@ class Solitaire:
 
         print("  ", end="")
         for i in range(self._size):
-            print(i + 1, end=" ")
+            ColorPrint.print_colored(str(i + 1), Color.BLUE, end=" ")
         print()
         for row, cells in enumerate(self.board):
             # print(alphabet[row], end="|")
             # for cell in cells:
             #     print(cell, end="|")
             # print()
-            print(f"{ALPHABET[row]}|{'|'.join(cells)}|")
+            ColorPrint.print_colored(ALPHABET[row], Color.BLUE, end="|")
+            for cell in cells:
+                color = Color.RED if cell == "1" else Color.GREEN
+                ColorPrint.print_colored(cell, color, end="|")
+            print()
 
     def get_valid_moves(self) -> list[tuple[int, int, MOVE]]:
         def is_valid_move(row: int, col: int, direction: MOVE) -> bool:
