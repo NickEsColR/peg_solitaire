@@ -1,6 +1,6 @@
 from enum import Enum
 from itertools import product
-from typing import Iterable
+from typing import Iterable, Callable
 import os
 
 
@@ -25,6 +25,7 @@ class Solitaire:
         self._size: int = 7
         self._corner_size: tuple[int, int] = (2, 2)
         self.board: list[list[str]] = self._setup_board()
+        self.counter: Callable[[], int] = self._create_counter()
 
     def _setup_board(self) -> list[list[str]]:
         """Set up the initial game board.
@@ -182,6 +183,48 @@ class Solitaire:
                 return moves[int(selection) - 1]
             print("Invalid selection. Please try again.")
 
+    def count_pegs(self) -> int:
+        """Count the number of pegs on the board.
+
+        Returns:
+            int: The number of pegs on the board.
+        """
+        return sum(row.count("1") for row in self.board)
+
+    def validate_win(self) -> bool:
+        """Check if the game is won.
+
+        Returns:
+            bool: True if the game is won, False otherwise.
+        """
+        return (
+            self.count_pegs() == 1
+            and self.board[self._size // 2][self._size // 2] == "1"
+        )
+
+    def _create_counter(self) -> Callable[[], int]:
+        """Create a counter for the number of moves made.
+
+        Returns:
+            Callable[None, int]: A function that returns the number of moves made.
+        """
+        count: int = 0
+
+        def increase() -> int:
+            nonlocal count
+            count += 1
+            return count
+
+        return increase
+
+    def end_game(self) -> None:
+        """End the game and display the result."""
+        moves_made: int = self.counter() - 1
+        remaining_pegs: int = self.count_pegs()
+        print(
+            f"{'VICTORY' if self.validate_win() else 'DEFEAT'} | Moves made: {moves_made} | Remaining pegs: {remaining_pegs}"
+        )
+
 
 def main() -> None:
     os.system("cls" if os.name == "nt" else "clear")
@@ -202,10 +245,13 @@ def main() -> None:
 
         try:
             game.apply_move(selected_move)
+            game.counter()
             os.system("cls" if os.name == "nt" else "clear")
         except ValueError as e:
             os.system("cls" if os.name == "nt" else "clear")
             print(f"Error applying move: {e}")
+
+    game.end_game()
 
 
 main()
