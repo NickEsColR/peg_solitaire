@@ -42,8 +42,20 @@ ALPHABET: str = "ABCDEFG"
 
 
 class Solitaire:
-    def __init__(self) -> None:
-        self._size: int = 7
+    """Represents a game of Solitaire.
+    Attributes:
+        size (int): The size of the board.
+        corner_size (tuple[int, int]): The size of the corners.
+        board (list[list[str]]): The game board.
+        counter (Callable[[], int]): A function to count the number of moves made.
+
+    Args:
+        size (int): The size of the board. Default is 7.
+        corner_size (tuple[int, int]): The size of the corners. Default is (2, 2).
+    """
+
+    def __init__(self, size: int = 7) -> None:
+        self._size: int = size
         self._corner_size: tuple[int, int] = (2, 2)
         self.board: list[list[str]] = self._setup_board()
         self.counter: Callable[[], int] = self._create_counter()
@@ -272,13 +284,28 @@ def ask_random_mode() -> bool:
         print("Invalid choice. Please enter 'y' or 'n'.")
 
 
+def ask_custom_size() -> int:
+    """Ask the user for a custom board size."""
+    while True:
+        size: str = input("Enter the board size (default is 7): ").strip()
+        if not size:
+            return 7
+        if size.isdigit() and int(size) % 2 == 1:
+            return int(size)
+        print("Invalid size. Please enter an odd number.")
+
+
 def main() -> None:
     os.system("cls" if os.name == "nt" else "clear")
+
+    print("Welcome to Peg Solitaire!")
+
+    size: int = ask_custom_size()
 
     use_random_mode: bool = ask_random_mode()
     os.system("cls" if os.name == "nt" else "clear")
 
-    game: Solitaire = Solitaire()
+    game: Solitaire = Solitaire(size=size)
 
     is_playing: bool = True
     while is_playing:
